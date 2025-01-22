@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "96461467719",
+    "project_id": "flutter-mcp-671e5",
+    "storage_bucket": "flutter-mcp-671e5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:96461467719:android:3952deec0fe499a709c162",
+        "android_client_info": {
+          "package_name": "com.example.receipt_validator"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpaRtsDS71Nx7m2ebKHRFdb5_XgzfiItk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
