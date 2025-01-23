@@ -53,9 +53,23 @@ class _RegisterPageState extends State<RegisterPage> {
       setState(() {
         _passwordError = 'Please enter your password';
       });
-    } else if (password.length < 6) {
+    } else if (password.length < 8) {
       setState(() {
-        _passwordError = 'Password must be at least 6 characters long';
+        _passwordError = 'Password must be at least 8 characters long';
+      });
+    } else if (password.length > 64) {
+      setState(() {
+        _passwordError = 'Password must be no longer than 64 characters';
+      });
+    } else if (!RegExp(
+            r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])')
+        .hasMatch(password)) {
+      setState(() {
+        _passwordError = 'Must include at least one:'
+            '\n• Uppercase letter (A-Z)'
+            '\n• Lowercase letter (a-z)'
+            '\n• Number (0-9)'
+            '\n• Special character (!@#\$%^&* etc.)';
       });
     } else {
       setState(() {

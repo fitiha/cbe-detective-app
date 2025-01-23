@@ -11,36 +11,35 @@ class PaymentEntryPage extends StatefulWidget {
 
 class _PaymentEntryPageState extends State<PaymentEntryPage> {
   final _formKey = GlobalKey<FormState>();
-  // final GetStorage _storage = GetStorage();
   final TextEditingController _tinController = TextEditingController();
-  final TextEditingController _accountNumberController =
-      TextEditingController();
+  final TextEditingController _accountNumberController = TextEditingController();
+  final FocusNode _accountFocusNode = FocusNode();
+  
+  List<String> recentAccounts = ['1000123456789', '1000098765432', '1000012345678'];
+  List<String> filteredRecentAccounts = [];
 
   @override
   void initState() {
     super.initState();
-
+    filteredRecentAccounts = recentAccounts;
+    
+    _accountNumberController.addListener(_filterAccounts);
     _tinController.addListener(_updateFormState);
     _accountNumberController.addListener(_updateFormState);
   }
 
-  void _updateFormState() {
-    setState(() {});
+  void _updateFormState() => setState(() {});
+  
+  void _filterAccounts() {
+    final input = _accountNumberController.text;
+    setState(() {
+      filteredRecentAccounts = recentAccounts
+          .where((account) => account.startsWith(input))
+          .toList();
+    });
   }
 
-  @override
-  void dispose() {
-    _tinController.removeListener(_updateFormState);
-    _accountNumberController.removeListener(_updateFormState);
-
-    _tinController.dispose();
-    _accountNumberController.dispose();
-    super.dispose();
-  }
-
-  bool get _isFormValid {
-    return _formKey.currentState?.validate() ?? false;
-  }
+  bool get _isFormValid => _formKey.currentState?.validate() ?? false;
 
   void _handleSubmit() async {
     if (_formKey.currentState!.validate()) {
@@ -78,6 +77,15 @@ class _PaymentEntryPageState extends State<PaymentEntryPage> {
         );
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _accountNumberController.removeListener(_filterAccounts);
+    _tinController.removeListener(_updateFormState);
+    _accountNumberController.removeListener(_updateFormState);
+    _accountFocusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -122,16 +130,17 @@ class _PaymentEntryPageState extends State<PaymentEntryPage> {
                           ],
                         ),
                         SizedBox(height: 10),
-                        _buildTextField(_accountNumberController,
-                            'Bank account number', true),
+                        _buildAccountNumberField(),
+                        if (_accountNumberController.text.isNotEmpty &&
+                            filteredRecentAccounts.isNotEmpty)
+                          _buildAccountSuggestions(),
                         SizedBox(height: 16),
-                        _buildTextField(
-                            _tinController, 'Reference Number', false),
+                        _buildReferenceNumberField(),
                         SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: null, // Disabled for now
+                            onPressed: null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.grey.shade300,
                               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -171,8 +180,7 @@ class _PaymentEntryPageState extends State<PaymentEntryPage> {
                 ),
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(double.infinity, 50),
-                  backgroundColor:
-                      _isFormValid ? Colors.blue : Colors.grey.shade300,
+                  backgroundColor: _isFormValid ? Colors.blue : Colors.grey.shade300,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -187,36 +195,29 @@ class _PaymentEntryPageState extends State<PaymentEntryPage> {
     );
   }
 
-  Widget _buildTextField(
-      TextEditingController controller, String labelText, bool isNumeric) {
+  Widget _buildAccountNumberField() {
     return Stack(
       children: [
         TextFormField(
-          controller: controller,
+          controller: _accountNumberController,
+          focusNode: _accountFocusNode,
           decoration: InputDecoration(
             labelText: null,
             contentPadding: EdgeInsets.symmetric(vertical: 25, horizontal: 10),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(
-                color: Color.fromARGB(255, 227, 227, 227),
-              ),
+              borderSide: BorderSide(color: Color.fromARGB(255, 227, 227, 227)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(
-                color: Colors.blue,
-                width: 2.0,
-              ),
+              borderSide: BorderSide(color: Colors.blue, width: 2.0),
             ),
           ),
-          keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
+          keyboardType: TextInputType.number,
           validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'This field is required';
-            }
-            if (isNumeric && !RegExp(r'^[0-9]+$').hasMatch(value)) {
-              return 'Please enter a valid number';
+            if (value == null || value.isEmpty) return 'This field is required';
+            if (!RegExp(r'^(1000\d{9}|10000\d{8})$').hasMatch(value)) {
+              return 'Must be 13 digits starting with 1000/10000';
             }
             return null;
           },
@@ -226,9 +227,9 @@ class _PaymentEntryPageState extends State<PaymentEntryPage> {
           left: 10,
           top: 2,
           child: Text(
-            labelText,
+            'Bank account number',
             style: TextStyle(
-              color: controller.text.isEmpty ? Colors.black : Colors.blue,
+              color: _accountNumberController.text.isEmpty ? Colors.black : Colors.blue,
               fontSize: 12,
               fontWeight: FontWeight.w300,
             ),
@@ -237,7 +238,76 @@ class _PaymentEntryPageState extends State<PaymentEntryPage> {
       ],
     );
   }
+
+  Widget _buildReferenceNumberField() {
+    return Stack(
+      children: [
+        TextFormField(
+          controller: _tinController,
+          decoration: InputDecoration(
+            labelText: null,
+            contentPadding: EdgeInsets.symmetric(vertical: 25, horizontal: 10),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Color.fromARGB(255, 227, 227, 227)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: Colors.blue, width: 2.0),
+            ),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) return 'This field is required';
+            
+            return null;
+          },
+          style: TextStyle(fontSize: 16),
+        ),
+        Positioned(
+          left: 10,
+          top: 2,
+          child: Text(
+            'Reference Number',
+            style: TextStyle(
+              color: _tinController.text.isEmpty ? Colors.black : Colors.blue,
+              fontSize: 12,
+              fontWeight: FontWeight.w300,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAccountSuggestions() {
+    return Container(
+      margin: EdgeInsets.only(top: 4),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: ListView.separated(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        itemCount: filteredRecentAccounts.length,
+        separatorBuilder: (_, __) => Divider(height: 1),
+        itemBuilder: (context, index) {
+          final account = filteredRecentAccounts[index];
+          return ListTile(
+            dense: true,
+            title: Text(account),
+            onTap: () {
+              _accountNumberController.text = account;
+              _accountFocusNode.unfocus();
+            },
+          );
+        },
+      ),
+    );
+  }
 }
+
+// VerificationResultPage remains the same as in original code
 
 class VerificationResultPage extends StatelessWidget {
   final VerificationResponse response;
