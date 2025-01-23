@@ -167,7 +167,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                                 ),
                                 elevation: 0,
                               ).copyWith(
-                                side: MaterialStateProperty.all(
+                                side: WidgetStateProperty.all(
                                   BorderSide(
                                       color: Colors.grey[300]!, width: 1),
                                 ),
@@ -201,7 +201,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                                 ),
                                 elevation: 0,
                               ).copyWith(
-                                side: MaterialStateProperty.all(
+                                side: WidgetStateProperty.all(
                                   BorderSide(
                                       color: Colors.grey[300]!, width: 1),
                                 ),

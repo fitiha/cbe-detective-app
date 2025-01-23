@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:get_storage/get_storage.dart';
-import 'package:get/get.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:receipt_validator/models/verification_response.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 class PaymentEntryPage extends StatefulWidget {
   static String route = 'signup-page';
@@ -50,7 +46,7 @@ class _PaymentEntryPageState extends State<PaymentEntryPage> {
     if (_formKey.currentState!.validate()) {
       try {
         final response = await http.post(
-          Uri.parse('http://localhost:3000/verify'),
+          Uri.parse('http://192.168.8.125:8000/verify'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             'accountNumber': _accountNumberController.text,
