@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:receipt_validator/core/constants.dart';
 import 'package:flutter/gestures.dart';
 
@@ -14,6 +15,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
   bool _obscurePassword = true;
   final _formKey = GlobalKey<FormState>();
   bool _emailTouched = false;
@@ -118,6 +120,43 @@ class _LoginPageState extends State<LoginPage> {
         Get.snackbar('Login Error', errorMessage,
             snackPosition: SnackPosition.BOTTOM);
       }
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    try {
+      // Ensure the user is signed out from Google Sign-In
+      await _googleSignIn.signOut();
+
+      // Force account selection
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      if (googleUser == null) {
+        // User canceled the sign-in process
+        return;
+      }
+
+      // Authenticate with Firebase
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+
+      // Store user email in GetStorage
+      final box = GetStorage();
+      box.write('user_email', userCredential.user?.email);
+
+      // Navigate to the main screen
+      Get.toNamed('mainscreen-page');
+    } catch (e) {
+      Get.snackbar('Google Sign-In Error', e.toString(),
+          snackPosition: SnackPosition.BOTTOM);
     }
   }
 
@@ -337,6 +376,42 @@ class _LoginPageState extends State<LoginPage> {
                                           style: TextStyle(
                                               color: Colors.white,
                                               fontWeight: FontWeight.w400),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 20),
+                                GestureDetector(
+                                  onTap: _signInWithGoogle,
+                                  child: Container(
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: Colors.grey),
+                                    ),
+                                    child: Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(18.0),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Image.asset(
+                                              'assets/images/google_logo.png',
+                                              height: 24,
+                                              width: 24,
+                                            ),
+                                            SizedBox(width: 10),
+                                            Text(
+                                              'Sign in with Google',
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),

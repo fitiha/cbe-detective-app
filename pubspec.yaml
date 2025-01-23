@@ -47,6 +47,7 @@ dependencies:
   build_runner: ^2.4.11
   flutter_launcher_icons: ^0.13.1
   firebase_auth: ^5.4.0
+  google_sign_in: ^5.3.0
   flutter_map: ^7.0.2
   cloud_firestore: ^5.6.1
   url_launcher: ^6.3.1
